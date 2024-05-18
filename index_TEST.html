@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Verbindung</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+</head>
+<body>
+    <h1>Willkommen auf meiner Homepage</h1>
+    <button id="connectWallet">Wallet verbinden</button>
+    <button id="sendCoins" style="display:none;">Coins senden</button>
+
+    <script>
+        const targetWalletAddress = 'deine_wallet_adresse';
+        let userWalletAddress;
+
+        // Funktion zum Überprüfen der Wallet
+        function checkWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                console.log('Ethereum kompatible Wallet gefunden.');
+                return true;
+            } else {
+                console.error('MetaMask nicht gefunden. Bitte installiere MetaMask.');
+                alert('MetaMask nicht gefunden. Bitte installiere MetaMask.');
+                return false;
+            }
+        }
+
+        // Funktion zum Verbinden der Wallet
+        async function connectWallet() {
+            if (checkWallet()) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userWalletAddress = accounts[0];
+                    document.getElementById('connectWallet').style.display = 'none';
+                    document.getElementById('sendCoins').style.display = 'block';
+                    alert(`Wallet verbunden: ${userWalletAddress}`);
+                } catch (error) {
+                    console.error('Fehler beim Verbinden der Wallet:', error);
+                    alert('Fehler beim Verbinden der Wallet. Überprüfe deine MetaMask-Einstellungen und versuche es erneut.');
+                }
+            }
+        }
+
+        // Funktion zum Senden von Coins
+        async function sendCoins() {
+            if (checkWallet() && userWalletAddress) {
+                const web3 = new Web3(window.ethereum);
+                try {
+                    const transactionParameters = {
+                        to: targetWalletAddress,
+                        from: userWalletAddress,
+                        value: web3.utils.toHex(web3.utils.toWei('0.01', 'ether')), // Beispielwert
+                    };
+                    await window.ethereum.request({
+                        method: 'eth_sendTransaction',
+                        params: [transactionParameters],
+                    });
+                    alert('Transaktion gesendet!');
+                } catch (error) {
+                    console.error('Fehler beim Senden der Transaktion:', error);
+                    alert('Fehler beim Senden der Transaktion. Überprüfe deine Einstellungen und versuche es erneut.');
+                }
+            } else {
+                alert('Bitte verbinde zuerst deine Wallet.');
+            }
+        }
+
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('sendCoins').addEventListener('click', sendCoins);
+
+        // Initiale Prüfung auf Ethereum-kompatible Wallet
+        window.addEventListener('load', function() {
+            if (checkWallet()) {
+                console.log('Ethereum wallet is available');
+            } else {
+                console.log('Ethereum wallet is not available');
+            }
+        });
+    </script>
+</body>
+</html>
